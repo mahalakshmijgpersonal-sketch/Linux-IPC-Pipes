@@ -24,9 +24,61 @@ Testing the C Program for the desired output.
 # PROGRAM:
 
 ## C Program that illustrate communication between two process using unnamed pipes using Linux API system calls
+```
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <stdlib.h>
 
+int main()
+{
+    int fd[2];
+    pid_t pid;
+    char write_msg[] = "Hello from Parent Process";
+    char read_msg[100];
 
+    // Create pipe
+    if(pipe(fd) == -1)
+    {
+        printf("Pipe failed\n");
+        return 1;
+    }
 
+    // Create child process
+    pid = fork();
+
+    if(pid < 0)
+    {
+        printf("Fork failed\n");
+        return 1;
+    }
+
+    // Parent Process
+    if(pid > 0)
+    {
+        close(fd[0]); // Close read end
+
+        write(fd[1], write_msg, strlen(write_msg)+1);
+
+        close(fd[1]); // Close write end
+    }
+
+    // Child Process
+    else
+    {
+        close(fd[1]); // Close write end
+
+        read(fd[0], read_msg, sizeof(read_msg));
+
+        printf("Child received message: %s\n", read_msg);
+
+        close(fd[0]); // Close read end
+    }
+
+    return 0;
+}
+```
 
 
 ## OUTPUT
@@ -34,8 +86,33 @@ Testing the C Program for the desired output.
 
 ## C Program that illustrate communication between two process using named pipes using Linux API system calls
 
+```
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
 
+int main()
+{
+    int fd;
+    char *myfifo = "/tmp/myfifo";
+    char msg[] = "Hello from Writer Process";
 
+    mkfifo(myfifo, 0666);
+
+    fd = open(myfifo, O_WRONLY);
+
+    write(fd, msg, strlen(msg) + 1);
+
+    printf("Message Sent\n");
+
+    close(fd);
+
+    return 0;
+}
+```
 
 
 ## OUTPUT
